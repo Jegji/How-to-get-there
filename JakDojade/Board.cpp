@@ -123,65 +123,8 @@ void Board::createFlight(String const first, String const second, int duration)
 	int firstID = findCityByString(first);
 	int secondID = findCityByString(second);
 	if (firstID == -1 || secondID == -1)return;
-
+	if(graph->m_graph[firstID][secondID]>duration || graph->m_graph[firstID][secondID]==-1)
 	graph->m_graph[firstID][secondID] = duration;
-}
-
-void Board::readRoad(Pos pos, Dir dir, List<int>* ends, List<int>* lngs, int lng, List<Pos>* cords)
-{
-	char temp;
-	int* val;
-	int* Llng;
-	cords->insert(new Pos(pos));
-	if (pos.x != 0 && dir != left && !cords->contains({ pos.x - 1,pos.y })) {
-		temp = board[pos.y][pos.x - 1];
-		if (temp == '#') {
-			readRoad({ pos.x - 1,pos.y }, right, ends, lngs, lng + 1, cords);
-		}
-		if (temp == '*') {
-			Llng = new int(lng + 1);
-			lngs->insert(Llng);
-			val = new int(findCityByPos({ pos.x - 1,pos.y }));
-			ends->insert(val);
-		}
-	}
-	if (pos.x + 1 != size_x && dir != right && !cords->contains({ pos.x + 1,pos.y })) {
-		temp = board[pos.y][pos.x + 1];
-		if (temp == '#') {
-			readRoad({ pos.x + 1,pos.y }, left, ends, lngs, lng + 1, cords);
-		}
-		if (temp == '*') {
-			Llng = new int(lng + 1);
-			lngs->insert(Llng);
-			val = new int(findCityByPos({ pos.x + 1,pos.y }));
-			ends->insert(val);
-		}
-	}
-	if (pos.y != 0 && dir != down && !cords->contains({ pos.x ,pos.y - 1 })) {
-		temp = board[pos.y - 1][pos.x];
-		if (temp == '#') {
-			readRoad({ pos.x,pos.y - 1 }, up, ends, lngs, lng + 1, cords);
-		}
-		if (temp == '*') {
-			Llng = new int(lng + 1);
-			lngs->insert(Llng);
-			val = new int(findCityByPos({ pos.x ,pos.y - 1 }));
-			ends->insert(val);
-		}
-	}
-	if (pos.y + 1 != size_y && dir != up && !cords->contains({ pos.x,pos.y + 1 })) {
-		temp = board[pos.y + 1][pos.x];
-		if (temp == '#') {
-			readRoad({ pos.x,pos.y + 1 }, down, ends, lngs, lng + 1, cords);
-		}
-		if (temp == '*') {
-			Llng = new int(lng + 1);
-			lngs->insert(Llng);
-			val = new int(findCityByPos({ pos.x ,pos.y + 1 }));
-			ends->insert(val);
-		}
-	}
-	return;
 }
 
 void Board::readCitys() {
@@ -212,24 +155,74 @@ void Board::readCitys() {
 	graph = new Graph(cites.lng());
 }
 
+void Board::exploreNeighbours(int x, int y, List<Pos>* visited, Queue* xQ, Queue* yQ,int* node_next_layer)
+{
+	int dx[] = { -1,1,0,0 };
+	int dy[] = { 0,0,-1,+1 };
+	int nextx;
+	int nexty;
+	for (int i = 0; i < 4; i++) {
+		nextx = x + dx[i];
+		nexty = y + dy[i];
+
+		if (nextx < 0 || nexty < 0)
+			continue;
+		if (nextx >= size_x || nexty >= size_y)
+			continue;
+		if (board[nexty][nextx] != '*' && board[nexty][nextx] != '#')
+			continue;
+		Pos* nextpos = new Pos{ nextx,nexty };
+		if (visited->contains(*nextpos))
+			continue;
+
+		xQ->enqueue(nextx);
+		yQ->enqueue(nexty);
+		visited->insert(nextpos);
+		*node_next_layer +=1;
+	}
+}
+
+void Board::readRoad(Pos pos,int idCity)
+{
+	int move_count = 0;
+	int node_left = 1;
+	int node_next_layer = 0;
+	Queue xQ;
+	Queue yQ;
+	xQ.enqueue(pos.x);
+	yQ.enqueue(pos.y);
+
+	List<Pos> visited;
+	visited.insert(&pos);
+
+	int x, y;
+	while (!xQ.isEmpty())
+	{
+		x = xQ.dequeue();
+		y = yQ.dequeue();
+
+		if (board[y][x] == '*' && move_count != 0) {
+			int id = findCityByPos({ x,y });
+			if (graph->m_graph[id][idCity] > move_count || graph->m_graph[id][idCity] == -1) {
+				graph->m_graph[id][idCity] = move_count;
+				graph->m_graph[idCity][id] = move_count;
+			}
+		}else
+			exploreNeighbours(x, y,&visited,&xQ,&yQ,&node_next_layer);
+		node_left--;
+		if (node_left == 0) {
+			std::cout << move_count <<" "<<xQ.getSize()<<" "<<visited.getSize()<<" "<<visited.getTime() << std::endl;
+			node_left = node_next_layer;
+			node_next_layer = 0;
+			move_count++;
+		}
+	}
+}
+
 void Board::readRoads()
 {
-	List<int> ends;
-	List<int> lngs;
-	List<Pos> cords;
 	for (int i = 0; i < cites.lng(); i++) {
-		readRoad(cites[i]->pos, none, &ends, &lngs, 0, &cords);
-		if (ends.lng() != 0) {
-			for (int j = 0; j < ends.lng(); j++) {
-				if (graph->m_graph[i][*ends[j]] == -1 || graph->m_graph[i][*ends[j]] > *lngs[j]) {
-					graph->m_graph[i][*ends[j]] = *lngs[j];
-					graph->m_graph[*ends[j]][i] = *lngs[j];
-				}
-			}
-		}
-		cords.erase();
-		ends.erase();
-		lngs.erase();
+		readRoad(cites[i]->pos,i);
 	}
 }
 

@@ -12,6 +12,7 @@ class List
 		~Node();
 	};
 	Node* head;
+	clock_t start = clock();
 	Node* tail;
 	int m_lng;
 public:
@@ -22,6 +23,8 @@ public:
 	T* getById(int id);
 	T* operator[] (int id);
 	void erase();
+	int getSize();
+	double getTime();
 	~List();
 };
 
@@ -100,6 +103,22 @@ inline void List<T>::erase()
 }
 
 template<typename T>
+inline int List<T>::getSize()
+{
+
+	return m_lng;
+}
+
+template<typename T>
+inline double List<T>::getTime()
+{
+	clock_t end = clock();
+	double time= (float)(end - start) / CLOCKS_PER_SEC;
+	end = start;
+	return time;
+}
+
+template<typename T>
 inline List<T>::~List()
 {
 	if (head != nullptr) {
@@ -117,5 +136,5 @@ inline List<T>::Node::Node(Node* prev, T* data) :data(data), next(nullptr), prev
 template<typename T>
 inline List<T>::Node::~Node()
 {
-	delete data;
+	//delete data;
 }

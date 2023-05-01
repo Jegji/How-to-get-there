@@ -130,8 +130,8 @@
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="City.cpp" />
     <ClCompile Include="Graph.cpp" />
-    <ClCompile Include="List.cpp" />
     <ClCompile Include="Pos.cpp" />
+    <ClCompile Include="queue.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="String.cpp" />
   </ItemGroup>
@@ -141,6 +141,7 @@
     <ClInclude Include="Graph.h" />
     <ClInclude Include="List.h" />
     <ClInclude Include="Pos.h" />
+    <ClInclude Include="queue.h" />
     <ClInclude Include="String.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

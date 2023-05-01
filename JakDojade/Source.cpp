@@ -1,4 +1,7 @@
 #include <iostream>
+#include <stdio.h>
+#include <time.h>
+
 #include "Board.h"
 #include "Graph.h"
 void readCommands(Board* board) {
@@ -24,10 +27,12 @@ void readCommands(Board* board) {
 }
 
 int main() {
+	
 	int x;
 	int y;
 	std::cin >> x;
 	std::cin >> y;
+	clock_t start = clock();
 	Board board(x, y);
 	board.readCitys();
 	board.readRoads();
@@ -38,4 +43,7 @@ int main() {
 	}
 	//board.printGraph();
 	readCommands(&board);
+	clock_t end = clock(); 
+	long double seconds = (float)(end - start) / CLOCKS_PER_SEC;
+	std::cout << seconds;
 }

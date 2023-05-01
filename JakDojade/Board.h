@@ -3,6 +3,7 @@
 #include "String.h"
 #include "List.h"
 #include "Graph.h"
+#include "queue.h"
 enum Dir {
 	up,
 	down,
@@ -24,8 +25,9 @@ private:
 	int findCityByString(String string);
 	Pos findFirstLetter(int x, int y);
 	Pos findLastLetter(int x, int y);
+	void exploreNeighbours(int x, int y, List<Pos>* visited, Queue* xQ, Queue* yQ, int* node_next_layer);
 	void createFlight(String first, String second, int duration);
-	void readRoad(Pos pos, Dir dri, List<int>* ends, List<int>* lngs, int lng, List<Pos>* cords);
+	void readRoad(Pos pos,int idCity);
 public:
 	Board(int x, int y);
 
